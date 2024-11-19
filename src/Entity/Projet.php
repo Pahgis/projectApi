@@ -45,6 +45,7 @@ class Projet
     private ?string $name = null;
 
     #[ORM\Column]
+    #[Groups(['projet:read' , 'projet:write'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(nullable: true)]
@@ -74,7 +75,7 @@ class Projet
      * @var Collection<int, Sprint>
      */
     #[ORM\OneToMany(targetEntity: Sprint::class, mappedBy: 'project' , cascade: ['persist', 'remove'])]
-    #[Groups(['project:read'])]
+    #[Groups(['project:read', 'project:create'])]
     private Collection $sprints;
 
     #[Groups(['project:create'])]

@@ -6,12 +6,14 @@ use App\Repository\SprintRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\State\SprintProcessor;
 use ApiPlatform\Metadata\ApiResource;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ApiResource(
     operations: [
         new \ApiPlatform\Metadata\Post(
+            processor: SprintProcessor::class,
             denormalizationContext: ['groups' => ['sprint:create']],
             normalizationContext: ['groups' => ['sprint:read']]
         ),
@@ -21,7 +23,9 @@ use Symfony\Component\Serializer\Annotation\Groups;
             denormalizationContext: ['groups' => ['sprint:update']],
             normalizationContext: ['groups' => ['sprint:read']]
         ),
-        new \ApiPlatform\Metadata\Delete()
+        new \ApiPlatform\Metadata\Delete(
+            output: false // Ne retourne rien après suppression
+        ),  
     ],
     normalizationContext: ['groups' => ['sprint:read']],
     denormalizationContext: ['groups' => ['sprint:write']]
@@ -66,7 +70,8 @@ class Sprint
     /**
      * @var Collection<int, Liste>
      */
-    #[ORM\OneToMany(targetEntity: Liste::class, mappedBy: 'sprint')]
+    #[ORM\OneToMany(targetEntity: Liste::class, mappedBy: 'sprint' , cascade: ['persist', 'remove'])]
+    #[Groups(['sprint:read', 'sprint:create'])]
     private Collection $liste;
 
     public function __construct()

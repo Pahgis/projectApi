@@ -48,5 +48,12 @@ services:
             $security: '@security.helper'
         tags:
             - { name: 'api_platform.state.processor', resource_class: 'App\Entity\Commentaire' }
+    App\State\SprintProcessor:
+        arguments:
+            $decoratedProcessor: '@api_platform.doctrine.orm.state.persist_processor'
+            $entityManager: '@doctrine.orm.entity_manager'
+        tags:
+            - { name: 'api_platform.state.processor', resource_class: 'App\Entity\Sprint' }
+
 
 

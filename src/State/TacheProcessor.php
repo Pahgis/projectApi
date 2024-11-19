@@ -29,8 +29,8 @@ class TacheProcessor implements ProcessorInterface
         
         $liste = $data->getListe();
         $sprint = $liste->getSprint();
-        $projet = $sprint->getProjet();
-
+        $projet = $sprint->getProject();
+    
         // Ajouter les membres à partir des emails
         
             if ($data->getEmails()) {

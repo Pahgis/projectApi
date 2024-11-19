@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\Projet;
 use App\Entity\Sprint;
+use App\Entity\Liste;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -27,7 +28,13 @@ class ProjetProcessor implements ProcessorInterface
             return $this->decoratedProcessor->process($data, $operation, $uriVariables, $context);
         }
 
-      
+        $user = $this->security->getUser();
+
+        if ($user) {
+            // Ajoutez l'utilisateur connecté comme membre du projet
+            $data->addMember($user);
+        }
+        
         // Ajouter les membres à partir des emails
       
             if ($data->getEmails()) {
@@ -52,19 +59,44 @@ class ProjetProcessor implements ProcessorInterface
             
             if (isset($context['request'])) {
                 $request = $context['request'];
-                $content = $request->getContent(); // Récupère le contenu brut JSON
+                $content = $request->getContent();
+    
                 if (!empty($content)) {
-                    $decodedContent = json_decode($content, true); // Transforme en tableau associatif
+                    $decodedContent = json_decode($content, true);
     
-                    if (isset($decodedContent['initialSprint'])) {
-                        $initialSprintData = $decodedContent['initialSprint'];
-    
-                        $sprint = new Sprint();
-                        $sprint->setName($initialSprintData['name'] ?? 'Sprint par défaut');
-                        $sprint->setDescription($initialSprintData['description'] ?? null);
-                        $sprint->setProject($data);
-                        $data->addSprint($sprint);
+                    if (isset($decodedContent['sprints']) && is_array($decodedContent['sprints'])) {
+                        foreach ($decodedContent['sprints'] as $sprintData) {
+                            $sprint = new Sprint();
+                            $sprint->setName($sprintData['name'] ?? 'Sprint par défaut');
+                            $sprint->setDescription($sprintData['description'] ?? null);
+                            $sprint->setStartAt(isset($sprintData['startAt']) ? new \DateTimeImmutable($sprintData['startAt']) : null);
+                            $sprint->setEndAt(isset($sprintData['endAt']) ? new \DateTimeImmutable($sprintData['endAt']) : null);
+                            $sprint->setProject($data);
+
+                            $backlog = new Liste();
+                            $backlog->setName('Backlog');
+                            $backlog->setSprint($sprint);
+
+                            $sprint->addListe($backlog);
+                            $data->addSprint($sprint);
+
+                        }
                     }
+                }
+
+                if ($data->getSprints()->isEmpty()) {
+                    $sprint = new Sprint();
+                    $sprint->setName('Sprint Initial');
+                    $sprint->setDescription('Sprint créé automatiquement pour ce projet.');
+                    $sprint->setProject($data);
+
+                    // Créer une liste "Backlog" pour ce sprint
+                    $backlog = new Liste();
+                    $backlog->setName('Backlog');
+                    $backlog->setSprint($sprint);
+
+                    $sprint->addListe($backlog);
+                    $data->addSprint($sprint);
                 }
             }
 
