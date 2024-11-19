@@ -27,3 +27,26 @@ services:
             $passwordHasher: '@security.password_hasher'
         tags:
             - { name: 'api_platform.state.processor', resource_class: 'App\Entity\User' }
+    App\State\ProjetProcessor:
+        arguments:
+            $decoratedProcessor: '@api_platform.doctrine.orm.state.persist_processor'
+            $userRepository: '@App\Repository\UserRepository'
+            $entityManager: '@doctrine.orm.entity_manager'
+            $security: '@security.helper'
+        tags:
+            - { name: 'api_platform.state.processor', resource_class: 'App\Entity\Projet'}
+    App\State\TacheProcessor:
+        arguments:
+            $decoratedProcessor: '@api_platform.doctrine.orm.state.persist_processor'
+            $userRepository: '@App\Repository\UserRepository'
+            $entityManager: '@doctrine.orm.entity_manager'
+        tags:
+            - { name: 'api_platform.state.processor', resource_class: 'App\Entity\Tache' }
+    App\State\CommentaireProcessor:
+        arguments:
+            $decoratedProcessor: '@api_platform.doctrine.orm.state.persist_processor'
+            $security: '@security.helper'
+        tags:
+            - { name: 'api_platform.state.processor', resource_class: 'App\Entity\Commentaire' }
+
+
